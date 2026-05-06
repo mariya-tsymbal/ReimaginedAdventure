@@ -1,10 +1,11 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { RootTabParamList } from '../types/navigation';
 import { HomeStack } from './HomeStack';
 import { CartScreen } from '../features/cart/screens/CartScreen';
 import { useCartStore } from '../store/cartStore';
+import HomeSvg from '../../assets/home.svg';
+import CartSvg from '../../assets/cart.svg';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -20,9 +21,9 @@ export function RootTabs() {
         component={HomeStack}
         options={{
           headerShown: false,
-          title: 'Products',
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color, fontSize: 16 }}>{'[S]'}</Text>
+          title: 'Home',
+          tabBarIcon: ({ color, size }) => (
+            <HomeSvg width={size} height={size} fill={color} />
           ),
         }}
       />
@@ -32,8 +33,8 @@ export function RootTabs() {
         options={{
           title: 'Cart',
           tabBarBadge: totalItems > 0 ? totalItems : undefined,
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color, fontSize: 16 }}>{'[C]'}</Text>
+          tabBarIcon: ({ color, size }) => (
+            <CartSvg width={size} height={size} stroke={color} />
           ),
         }}
       />

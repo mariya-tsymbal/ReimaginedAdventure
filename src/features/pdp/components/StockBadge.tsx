@@ -8,11 +8,23 @@ interface Props {
 
 export function StockBadge({ availableForSale, currentlyNotInStock }: Props) {
   if (!availableForSale) {
-    return <Text style={[styles.badge, styles.outOfStock]}>Out of stock</Text>;
+    return (
+      <Text
+        style={[styles.badge, styles.outOfStock]}
+        accessibilityRole="text"
+        accessibilityLiveRegion="polite">
+        Out of stock
+      </Text>
+    );
   }
   if (currentlyNotInStock) {
     return (
-      <Text style={[styles.badge, styles.backorder]}>Ships when available</Text>
+      <Text
+        style={[styles.badge, styles.backorder]}
+        accessibilityRole="text"
+        accessibilityLiveRegion="polite">
+        Ships when available
+      </Text>
     );
   }
   return null;

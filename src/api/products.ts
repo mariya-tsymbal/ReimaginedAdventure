@@ -1,4 +1,5 @@
 import type { Product } from '../types/product';
+import { ProductSchema } from './schemas';
 import { PRODUCTS_API_URL } from '../utils/constants';
 
 export class ApiError extends Error {
@@ -21,5 +22,14 @@ export async function fetchProducts(): Promise<Product[]> {
   if (!response.ok) {
     throw new ApiError(response.status, response.statusText);
   }
-  return response.json() as Promise<Product[]>;
+  const json = await response.json();
+  const raw = Array.isArray(json) ? json : [];
+  return raw.flatMap(item => {
+    const result = ProductSchema.safeParse(item);
+    if (!result.success) {
+      console.warn('Dropped product:', result.error.flatten());
+      return [];
+    }
+    return [result.data];
+  });
 }

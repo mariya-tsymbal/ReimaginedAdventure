@@ -12,7 +12,7 @@ export function HomeStack() {
       <Stack.Screen
         name="ProductList"
         component={ProductListScreen}
-        options={{ title: 'Products' }}
+        options={{ title: 'Welcome to Reactiv store' }}
       />
       <Stack.Screen
         name="ProductDetail"

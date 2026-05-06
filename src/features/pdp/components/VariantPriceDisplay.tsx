@@ -13,11 +13,21 @@ export function VariantPriceDisplay({ price, compareAtPrice }: Props) {
     compareAtPrice &&
     parseFloat(compareAtPrice.amount) > parseFloat(price.amount);
 
+  const priceText = formatMoney(price);
+  const compareText = showCompare ? formatMoney(compareAtPrice!) : null;
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.price}>{formatMoney(price)}</Text>
+    <View
+      style={styles.container}
+      accessible
+      accessibilityLabel={
+        compareText ? `${priceText}, was ${compareText}` : priceText
+      }>
+      <Text style={styles.price}>{priceText}</Text>
       {showCompare && (
-        <Text style={styles.compareAt}>{formatMoney(compareAtPrice!)}</Text>
+        <Text style={styles.compareAt} importantForAccessibility="no">
+          {compareText}
+        </Text>
       )}
     </View>
   );

@@ -1,97 +1,171 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# ReimaginedAdventure
 
-# Getting Started
+A React Native **Product Browser + Cart** app powered by a Shopify Storefront API JSON feed. Browse products, select variants, manage a persistent cart — online or offline.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Setup Instructions
 
-## Step 1: Start Metro
+### Prerequisites
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+- Node.js >= 22.11.0
+- Ruby (for CocoaPods)
+- Xcode 16+ (iOS)
+- Android Studio + Android SDK (Android)
+- Watchman (recommended)
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+Complete the [React Native environment setup](https://reactnative.dev/docs/set-up-your-environment) before proceeding.
 
-```sh
-# Using npm
-npm start
+### Install
 
-# OR using Yarn
-yarn start
-```
+```bash
+git clone <repo-url> && cd ReimaginedAdventure
+npm install
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
+# iOS native deps
 bundle install
+bundle exec pod install --project-directory=ios
 ```
 
-Then, and every time you update your native dependencies, run:
+## Environment Variables
 
-```sh
-bundle exec pod install
+Copy the template and adjust as needed:
+
+```bash
+cp .env.template .env
+# Then fill in the values in .env
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+| Variable | Description |
+|----------|-------------|
+| `PRODUCTS_API_URL` | Shopify product feed JSON endpoint |
 
-```sh
-# Using npm
-npm run ios
+Variables are injected at build time via `react-native-dotenv` and imported from `@env`. TypeScript types are declared in `src/types/env.d.ts`.
 
-# OR using Yarn
-yarn ios
+> **Note:** After changing `.env`, restart Metro with `--reset-cache`: `npm start -- --reset-cache`
+
+## Running the App
+
+```bash
+npm start          # Start Metro bundler
+
+# In a separate terminal:
+npm run ios        # Build & run on iOS Simulator
+npm run android    # Build & run on Android Emulator
+
+npm test           # Run Jest tests
+npm run lint       # Run ESLint
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## Architecture
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+```
+┌──────────────────────────────────────────────────────────┐
+│                        App.tsx                           │
+│  GestureHandlerRootView → SafeAreaProvider →             │
+│  PersistQueryClientProvider → RootNavigator              │
+└──────────────────────┬───────────────────────────────────┘
+                       │
+          ┌────────────┴────────────┐
+          │      RootTabs           │
+          │  (Bottom Tab Navigator) │
+          └─────┬──────────┬────────┘
+                │          │
+     ┌──────────┴──┐   ┌──┴──────────┐
+     │  HomeStack  │   │  CartScreen  │
+     │ (Native     │   │             │
+     │  Stack)     │   └─────────────┘
+     └──┬─────┬────┘
+        │     │
+  ┌─────┴┐  ┌┴──────────────┐
+  │List  │  │ProductDetail   │
+  │Screen│  │Screen (PDP)    │
+  └──────┘  └────────────────┘
 
-## Step 3: Modify your app
+  Data Flow
+  ─────────
+  Shopify JSON  ──→  fetch()  ──→  Zod validation  ──→  TanStack Query
+       feed          (api/)        (api/schemas.ts)      (cache + offline)
+                                                              │
+                                            ┌─────────────────┤
+                                            ▼                 ▼
+                                       useProducts()     useProduct(id)
+                                       (catalog list)    (PDP detail)
+                                                              │
+                                                              ▼
+                                                     useVariantSelection()
+                                                              │
+                                                   ┌──────────┴──────────┐
+                                                   ▼                     ▼
+                                              Add to Cart           UI Components
+                                                   │             (OptionSelector,
+                                                   ▼              ImageCarousel,
+                                             Zustand Store        StockBadge, etc.)
+                                             (cartStore.ts)
+                                                   │
+                                                   ▼
+                                              MMKV Persist
+                                          (survives app kill)
 
-Now that you have successfully run the app, let's make changes!
+  Offline Strategy
+  ────────────────
+  Query cache  ──→  MMKV (query-client)  ──→  Hydrate on cold start
+  Cart state   ──→  MMKV (cart-storage)  ──→  Restore on cold start
+```
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+### Key Layers
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+| Layer | Tech | Purpose |
+|-------|------|---------|
+| **Navigation** | React Navigation v7 (native stack + bottom tabs) | Type-safe screen routing |
+| **Server state** | TanStack Query v5 + MMKV persister | Fetch, cache, offline hydration |
+| **API validation** | Zod v3 (per-item `safeParse`) | Runtime schema validation; drops malformed products gracefully |
+| **Client state** | Zustand + MMKV persist middleware | Cart management, survives app restarts |
+| **Rendering** | FlashList | Performant list virtualization |
+| **Styling** | React Native StyleSheet (no external UI libs) | Custom components throughout |
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+### Folder Structure
 
-## Congratulations! :tada:
+```
+src/
+  api/           products.ts (fetch + validate), schemas.ts (Zod)
+  components/    LoadingView, ErrorView, EmptyView, icons/
+  features/
+    catalog/     ProductListScreen, ProductDetailScreen, ProductCard, hooks
+    pdp/         ImageCarousel, OptionSelector, AddToCartButton, StockBadge,
+                 VariantPriceDisplay, useVariantSelection
+    cart/        CartScreen, CartLineItem, CartSummary, EmptyCart
+  navigation/    RootNavigator, RootTabs, HomeStack
+  store/         cartStore.ts (Zustand)
+  types/         product.ts (Zod-inferred), cart.ts, navigation.ts
+  utils/         constants, currency, mmkvPersister, queryClient, theme
+```
 
-You've successfully run and modified your React Native App. :partying_face:
+## Notable Tradeoffs & Assumptions
 
-### Now what?
+### Zod validation: graceful drop vs strict parse
+API responses are validated per-product with `safeParse`. Non-conforming products are dropped with a `console.warn` rather than failing the entire request. This prioritizes UX resilience over strictness — appropriate since we don't control the Shopify feed.
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+### Single endpoint, client-side filtering
+The API returns all products in one response. PDP reuses the cached list (`useProduct` selects from the query cache) instead of making a second request. This avoids extra network calls but means the full catalog is always in memory. Acceptable for a small catalog; would need pagination for hundreds of products.
 
-# Troubleshooting
+### Negative `quantityAvailable`
+Shopify can return negative stock values (overselling). The app trusts `availableForSale` as the source of truth for purchasability, not `quantityAvailable`. Zod allows `z.number()` without `.min(0)` to reflect this.
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+### MMKV over AsyncStorage
+MMKV is synchronous (JSI-based), making it faster for both query cache hydration and cart persistence. Tradeoff: requires native module linking and `pod install`.
 
-# Learn More
+### No external UI libraries
+Per project constraints. All components (chips, badges, stepper, carousel) are built from scratch using `StyleSheet`, `Pressable`, and `ScrollView`.
 
-To learn more about React Native, take a look at the following resources:
+### FlashList over FlatList
+Better recycling and memory performance. Requires `estimatedItemSize` but worth it for smoother scrolling. Mocked as `FlatList` in tests.
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+### TanStack Query cache timing
+- `staleTime: 5 min` — avoids refetching on every screen focus
+- `gcTime: 24 hours` — keeps data available offline for a full day
+- `retry: 2` — graceful retry on flaky networks
+
+### Cart persistence
+Zustand's `persist` middleware with MMKV storage. Cart survives app kills. No server-side cart — everything is local.
+
+### Variant selection UX
+Auto-selects first available variant on PDP mount. Out-of-stock variants are visually distinct but still visible (not hidden) so users can see the full product range.

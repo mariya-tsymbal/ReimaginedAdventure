@@ -10,7 +10,13 @@ interface Props {
 
 export function ProductCard({ product, onPress }: Props) {
   const imageUri = product.images[0]?.url;
-  const price = formatMoney(product.priceRange.minVariantPrice);
+  const min = formatMoney(product.priceRange.minVariantPrice);
+  const max = formatMoney(product.priceRange.maxVariantPrice);
+  const price =
+    product.priceRange.minVariantPrice.amount ===
+    product.priceRange.maxVariantPrice.amount
+      ? min
+      : `${max} – ${min}`;
 
   return (
     <Pressable

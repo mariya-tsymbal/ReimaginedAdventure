@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stepperIcon: { fontSize: 16, color: '#111', lineHeight: 20 },
+  stepperIcon: { fontSize: 16, color: '#111', lineHeight: 16, includeFontPadding: false },
   quantity: { fontSize: 15, fontWeight: '600', color: '#111', minWidth: 20, textAlign: 'center' },
   rowTotal: { marginLeft: 'auto', fontSize: 14, fontWeight: '700', color: '#111' },
 });

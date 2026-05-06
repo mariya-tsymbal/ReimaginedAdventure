@@ -1,1 +1,3 @@
-export const PRODUCTS_API_URL = 'https://gist.githubusercontent.com/agorovyi/40dcd166a38b4d1e9156ad66c87111b7/raw/36f1c815dd83ed8189e55e6e6619b5d7c7c4e7d6/testProducts.json';
+import { PRODUCTS_API_URL as ENV_PRODUCTS_API_URL } from '@env';
+
+export const PRODUCTS_API_URL = ENV_PRODUCTS_API_URL;

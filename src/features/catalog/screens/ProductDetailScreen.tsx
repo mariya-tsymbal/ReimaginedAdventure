@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -16,6 +16,7 @@ import { AddToCartButton } from '../../pdp/components/AddToCartButton';
 import { StockBadge } from '../../pdp/components/StockBadge';
 import { LoadingView } from '../../../components/LoadingView';
 import { ErrorView } from '../../../components/ErrorView';
+import { useCartActions } from '../../cart/hooks/useCartActions';
 
 export function ProductDetailScreen({ route, navigation }: ProductDetailScreenProps) {
   const { productId } = route.params;
@@ -49,13 +50,21 @@ function ProductDetailContent({
 }) {
   const { selectedOptions, selectedVariant, isComplete, selectOption, getUnavailableValues } =
     useVariantSelection(product);
+  const { addItem } = useCartActions();
 
-  function handleAddToCart() {
-    if (!selectedVariant) {
+  const handleAddToCart = useCallback(() => {
+    if (!selectedVariant || !isComplete) {
       return;
     }
-    // Cart integration wired in Phase 4
-  }
+    addItem({
+      variantId: selectedVariant.id,
+      productId: product.id,
+      title: product.title,
+      variantTitle: selectedVariant.title,
+      price: selectedVariant.price,
+      image: selectedVariant.image ?? product.images[0],
+    });
+  },[selectedVariant, isComplete, addItem, product]);
 
   return (
     <View style={styles.root}>

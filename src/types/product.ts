@@ -1,61 +1,18 @@
-export interface MoneyV2 {
-  amount: string;
-  currencyCode: string;
-}
+import type { z } from 'zod';
+import type {
+  MoneyV2Schema,
+  ProductImageSchema,
+  SelectedOptionSchema,
+  ProductOptionSchema,
+  ProductVariantSchema,
+  PriceRangeSchema,
+  ProductSchema,
+} from '../api/schemas';
 
-export interface ProductImage {
-  id: string;
-  url: string;
-  altText?: string | null;
-  width?: number;
-  height?: number;
-}
-
-export interface SelectedOption {
-  name: string;
-  value: string;
-}
-
-export interface ProductOption {
-  id: string;
-  name: string;
-  values: string[];
-}
-
-export interface ProductVariant {
-  id: string;
-  title: string;
-  quantityAvailable: number;
-  availableForSale: boolean;
-  currentlyNotInStock: boolean;
-  price: MoneyV2;
-  compareAtPrice?: MoneyV2 | null;
-  sku: string;
-  selectedOptions: SelectedOption[];
-  image?: ProductImage | null;
-}
-
-export interface PriceRange {
-  maxVariantPrice: MoneyV2;
-  minVariantPrice: MoneyV2;
-}
-
-export interface Product {
-  id: string;
-  title: string;
-  description: string;
-  descriptionHtml: string;
-  availableForSale: boolean;
-  handle: string;
-  productType: string;
-  tags: string[];
-  vendor: string;
-  priceRange: PriceRange;
-  compareAtPriceRange: PriceRange;
-  images: ProductImage[];
-  options: ProductOption[];
-  requiresSellingPlan: boolean;
-  onlineStoreUrl: string;
-  variants: ProductVariant[];
-  collections: string[];
-}
+export type MoneyV2 = z.infer<typeof MoneyV2Schema>;
+export type ProductImage = z.infer<typeof ProductImageSchema>;
+export type SelectedOption = z.infer<typeof SelectedOptionSchema>;
+export type ProductOption = z.infer<typeof ProductOptionSchema>;
+export type ProductVariant = z.infer<typeof ProductVariantSchema>;
+export type PriceRange = z.infer<typeof PriceRangeSchema>;
+export type Product = z.infer<typeof ProductSchema>;

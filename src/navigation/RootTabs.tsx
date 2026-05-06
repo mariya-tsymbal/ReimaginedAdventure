@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { RootTabParamList } from '../types/navigation';
 import { HomeStack } from './HomeStack';
@@ -9,9 +9,21 @@ import CartSvg from '../../assets/cart.svg';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
+function HomeIcon({ color, size }: { color: string; size: number }) {
+  return <HomeSvg width={size} height={size} fill={color} />;
+}
+
+function CartIcon({ color, size }: { color: string; size: number }) {
+  return <CartSvg width={size} height={size} stroke={color} />;
+}
+
 export function RootTabs() {
-  const totalItems = useCartStore(state =>
-    state.items.reduce((sum, item) => sum + item.quantity, 0),
+  const totalItems = useCartStore(
+    useCallback(
+      (state: { items: { quantity: number }[] }) =>
+        state.items.reduce((sum, item) => sum + item.quantity, 0),
+      [],
+    ),
   );
 
   return (
@@ -22,9 +34,7 @@ export function RootTabs() {
         options={{
           headerShown: false,
           title: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <HomeSvg width={size} height={size} fill={color} />
-          ),
+          tabBarIcon: HomeIcon,
         }}
       />
       <Tab.Screen
@@ -33,9 +43,7 @@ export function RootTabs() {
         options={{
           title: 'Cart',
           tabBarBadge: totalItems > 0 ? totalItems : undefined,
-          tabBarIcon: ({ color, size }) => (
-            <CartSvg width={size} height={size} stroke={color} />
-          ),
+          tabBarIcon: CartIcon,
         }}
       />
     </Tab.Navigator>

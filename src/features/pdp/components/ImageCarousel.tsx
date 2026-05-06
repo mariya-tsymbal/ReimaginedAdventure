@@ -6,7 +6,6 @@ import {
   NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import type { ProductImage } from '../../../types/product';
